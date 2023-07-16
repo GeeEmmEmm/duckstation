@@ -93,7 +93,13 @@ void NeGcon::SetBindState(u32 index, float value)
     if (sub_index >= m_axis_state.size())
       return;
 
-    m_axis_state[sub_index] = static_cast<u8>(std::clamp(value * 255.0f, 0.0f, 255.0f));
+    // Flip axes for I, II and L
+    if (m_axis_invert && (sub_index == static_cast<u32>(Axis::I)  ||
+                          sub_index == static_cast<u32>(Axis::II) ||
+                          sub_index == static_cast<u32>(Axis::L)))
+      m_axis_state[sub_index] = static_cast<u8>(std::clamp((value - 1) * -255.0f, 0.0f, 255.0f));
+    else
+      m_axis_state[sub_index] = static_cast<u8>(std::clamp(value * 255.0f, 0.0f, 255.0f));
   }
   else if (index < static_cast<u32>(Button::Count))
   {
@@ -261,6 +267,8 @@ static const SettingInfo s_settings[] = {
   {SettingInfo::Type::Float, "SteeringSensitivity", TRANSLATABLE("NeGcon", "Steering Axis Sensitivity"),
    TRANSLATABLE("NeGcon", "Sets the steering axis scaling factor."), "1.00f", "0.01f", "2.00f", "0.01f", "%.0f%%",
    nullptr, 100.0f},
+  {SettingInfo::Type::Boolean, "InvertAxis",
+   TRANSLATABLE("NeGcon", "Invert the axes assigned to I, II and L.")},
 };
 
 const Controller::ControllerInfo NeGcon::INFO = {ControllerType::NeGcon,
@@ -277,4 +285,5 @@ void NeGcon::LoadSettings(SettingsInterface& si, const char* section)
   Controller::LoadSettings(si, section);
   m_steering_deadzone = si.GetFloatValue(section, "SteeringDeadzone", 0.10f);
   m_steering_sensitivity = si.GetFloatValue(section, "SteeringSensitivity", 1.00f);
+  m_axis_invert = si.GetBoolValue(section, "InvertAxis", false);
 }

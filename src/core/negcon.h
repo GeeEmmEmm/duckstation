@@ -92,4 +92,5 @@ private:
 
   float m_steering_deadzone = 0.00f;
   float m_steering_sensitivity = 1.00f;
+  bool m_axis_invert = false;
 };
